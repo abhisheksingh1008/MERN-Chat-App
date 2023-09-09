@@ -2,9 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-
 import { useAuth } from "../../store/AuthContext";
-
 import {
   Button,
   FormControl,
@@ -12,6 +10,8 @@ import {
   Input,
   VStack,
 } from "@chakra-ui/react";
+
+const REACT_APP_CLOUDINARY_CLOUD_NAME = "dmndmxhsc";
 
 const initialFromState = {
   name: "",
@@ -27,7 +27,7 @@ const handleFileUpload = async (filetype, file) => {
     if (!file) return;
     if (!filetype) filetype = "auto";
 
-    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/${filetype}/upload`;
+    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${REACT_APP_CLOUDINARY_CLOUD_NAME}/${filetype}/upload`;
 
     const formData = new FormData();
     formData.append("file", file);
