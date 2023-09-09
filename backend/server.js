@@ -1,6 +1,6 @@
 import path from "path";
 import express from "express";
-// import cors from "cors";
+import cors from "cors";
 import { config } from "dotenv";
 import { Server } from "socket.io";
 
@@ -23,7 +23,18 @@ app.use("/api/chats", chatRoutes);
 app.use("/api/messages", messageRoutes);
 
 const __dirname = path.resolve();
-console.log("Current directory is :- ", __dirname);
+// console.log("Current directory is :- ", __dirname);
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "/frontend/build")));
+
+  app.get("*", (req, res, next) => {
+    res.sendFile(path.resolve(__dirname, "frontend", "build", "index.html"));
+  });
+} else {
+  app.get("/", (req, res, next) => {
+    res.send("API is running.");
+  });
+}
 
 app.use(notFound);
 app.use(errorHandler);
