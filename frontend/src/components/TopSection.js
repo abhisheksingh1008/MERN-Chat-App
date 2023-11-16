@@ -25,7 +25,7 @@ import {
 } from "@chakra-ui/react";
 import { useAuth } from "../store/AuthContext";
 import { chatActions } from "../store/ChatStore/chat-slice";
-import { getSingleChatName } from "../utils/chatLogics";
+import { getSingleChatName } from "../utils/ChatLogics";
 import MyAccountModal from "./modals/MyAccountModal";
 import UserListItem from "./miscellaneous/UserListItem";
 import LoadingSkeleton from "./miscellaneous/ChatLoadingSkeleton";

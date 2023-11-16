@@ -10,7 +10,7 @@ import { chatActions } from "../store/ChatStore/chat-slice";
 import {
   getSingleChatName,
   getSingleChatProfileImage,
-} from "../utils/chatLogics";
+} from "../utils/ChatLogics";
 
 const MyChats = ({ fetchAgain }) => {
   const authCtx = useAuth();

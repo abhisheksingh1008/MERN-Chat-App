@@ -10,7 +10,7 @@ import {
   getSingleChatName,
   getSingleChatProfileImage,
   loggedUserIsGroupAdmin,
-} from "../utils/chatLogics";
+} from "../utils/ChatLogics";
 
 const SingleChatTopSection = ({ setFetchAgain, updateGroupChatHandler }) => {
   const authCtx = useAuth();
