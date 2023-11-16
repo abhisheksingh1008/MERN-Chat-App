@@ -10,8 +10,7 @@ import {
   Input,
   VStack,
 } from "@chakra-ui/react";
-
-const REACT_APP_CLOUDINARY_CLOUD_NAME = "dmndmxhsc";
+import { handleFileUpload } from "../../utils/cloudinary";
 
 const initialFromState = {
   name: "",
@@ -20,36 +19,6 @@ const initialFromState = {
   confirmedPassword: "",
   isSubmitting: false,
   isError: "",
-};
-
-const handleFileUpload = async (filetype, file) => {
-  try {
-    if (!file) return;
-    if (!filetype) filetype = "auto";
-
-    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${REACT_APP_CLOUDINARY_CLOUD_NAME}/${filetype}/upload`;
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "chat_app_preset");
-
-    const response = await fetch(cloudinaryUrl, {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error("Failed to upload file.");
-    }
-
-    const { secure_url } = data;
-
-    return secure_url;
-  } catch (error) {
-    console.log(error);
-  }
 };
 
 const Signup = () => {
@@ -86,22 +55,37 @@ const Signup = () => {
       isSubmitting: true,
     }));
 
-    const image_url = await handleFileUpload("image", profilePicture);
-
-    if (!image_url) {
+    let image_url, public_id;
+    try {
+      const result = await handleFileUpload(profilePicture, "image");
+      if (!result.image_url || !result.public_id) {
+        toast({
+          title: "Failed to upload wallpaper. Please try again later.",
+          status: "error",
+          duration: 6000,
+          isClosable: true,
+          position: "top",
+        });
+        setFormData((prev) => ({
+          ...prev,
+          isSubmitting: false,
+        }));
+        return;
+      }
+      image_url = result.image_url;
+      public_id = result.public_id;
+    } catch (error) {
       toast({
-        title: "Failed to upload file.",
+        title: error.message,
         status: "error",
         duration: 6000,
         isClosable: true,
         position: "top",
       });
-
       setFormData((prev) => ({
         ...prev,
         isSubmitting: false,
       }));
-
       return;
     }
 
@@ -110,7 +94,10 @@ const Signup = () => {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        profileImage: image_url,
+        profileImage: {
+          image_url,
+          public_id,
+        },
       })
       .then((response) => {
         if (response.data.success) {
@@ -123,7 +110,6 @@ const Signup = () => {
           isClosable: true,
           position: "top",
         });
-
         navigate("/chats");
       })
       .catch((err) => {

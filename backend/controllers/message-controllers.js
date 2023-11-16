@@ -42,9 +42,9 @@ const fetchMessagesByChatId = async (req, res, next) => {
 const createNewMessage = async (req, res, next) => {
   try {
     const chatId = req.params.chatId;
-    const { messageContent } = req.body;
+    const { message } = req.body;
 
-    if (!messageContent) {
+    if (!message) {
       return next(
         new HttpError("Sender and message content are required.", 400)
       );
@@ -60,8 +60,8 @@ const createNewMessage = async (req, res, next) => {
 
     let newMessage = new Message({
       sender: req.user._id,
-      messageContent,
       chat: chatId,
+      ...message,
     });
 
     await newMessage.save();

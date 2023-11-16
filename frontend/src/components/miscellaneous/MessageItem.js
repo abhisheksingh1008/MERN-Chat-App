@@ -1,37 +1,48 @@
-import { Avatar, Box, Text, Tooltip } from "@chakra-ui/react";
+import { Avatar, Box, Image, Text, Tooltip } from "@chakra-ui/react";
+import DisplayImageModal from "../modals/DisplayImageModal";
 
-const MessageItem = ({ message, isSelfMessage, isLastMessage }) => {
+const MessageItem = ({ message, isSelfMessage, isFirstMessage }) => {
   return (
     <Box
       m={1}
-      mb={isLastMessage ? 2 : 0}
+      mb={isFirstMessage ? 2 : 1}
       display="flex"
-      alignItems="center"
       justifyContent={isSelfMessage ? "flex-end" : "flex-start"}
     >
-      {!isSelfMessage && isLastMessage && (
+      {!isSelfMessage && isFirstMessage && (
         <Tooltip label={message?.sender?.name} placement="bottom" hasArrow>
           <Avatar
-            mt="7px"
+            mt="3px"
             size="xs"
             cursor="pointer"
             name={message?.sender?.name}
-            src={message?.sender?.profileImage}
+            src={message?.sender?.profileImage?.image_url}
           />
         </Tooltip>
       )}
-      <Text
-        ml={!isSelfMessage && !isLastMessage ? 8 : 2}
-        // mr={isSelfMessage && !isLastMessage ? 8 : 2}
-        py={2}
-        px={3}
+      <Box
+        p={1.5}
         maxWidth="75%"
-        borderRadius="xl"
-        bg={isSelfMessage ? "#BEE3F0" : "#B9F5D0"}
+        borderRadius="md"
+        bg={isSelfMessage ? "#abe1f4" : "#9febbc"}
+        ml={!isSelfMessage && !isFirstMessage ? 8 : 2}
+        // mr={isSelfMessage && !isFirstMessage ? 8 : 2}
       >
-        {message?.messageContent}
-      </Text>
-      {/* {isSelfMessage && isLastMessage && (
+        {message.isFile && (
+          <DisplayImageModal image_url={message?.fileInfo?.file_url}>
+            <Image
+              borderRadius="md"
+              src={message?.fileInfo?.file_url}
+              alt={"message-image"}
+              cursor="pointer"
+            />
+          </DisplayImageModal>
+        )}
+        <Text mt={message.isFile ? 1 : 0} pr={0.5}>
+          {message?.messageContent}
+        </Text>
+      </Box>
+      {/* {isSelfMessage && isFirstMessage && (
         <Tooltip label={message?.sender?.name} placement="bottom" hasArrow>
           <Avatar
             mt="7px"

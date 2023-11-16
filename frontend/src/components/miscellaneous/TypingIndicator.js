@@ -21,7 +21,7 @@ const TypingIndicator = ({ userWhoIsTyping }) => {
           size="xs"
           cursor="pointer"
           name={userWhoIsTyping?.name}
-          src={userWhoIsTyping?.profileImage}
+          src={userWhoIsTyping?.profileImage?.image_url}
         />
       </Tooltip>
       <div style={{ marginLeft: "8px" }}>{View}</div>

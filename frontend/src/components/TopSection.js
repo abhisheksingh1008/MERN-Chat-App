@@ -25,11 +25,12 @@ import {
 } from "@chakra-ui/react";
 import { useAuth } from "../store/AuthContext";
 import { chatActions } from "../store/ChatStore/chat-slice";
-import { getSingleChatName } from "../utils/ChatLogics";
-import LoadingSkeleton from "./miscellaneous/ChatLoadingSkeleton";
+import { getSingleChatName } from "../utils/chatLogics";
+import MyAccountModal from "./modals/MyAccountModal";
 import UserListItem from "./miscellaneous/UserListItem";
-import UserProfileModal from "./modals/UserProfileModal";
+import LoadingSkeleton from "./miscellaneous/ChatLoadingSkeleton";
 import LogoutConfimationModal from "./modals/LogoutConfimationModal";
+import ChatWallpaperModal from "./modals/ChatWallpaperModal";
 import "../styles/NotificationButton.css";
 
 const TopSection = () => {
@@ -209,14 +210,15 @@ const TopSection = () => {
               <Avatar
                 size={{ base: "xs", md: "sm" }}
                 name={authCtx.user?.name}
-                src={authCtx.user?.profileImage}
+                src={authCtx.user?.profileImage?.image_url}
               />
             </MenuButton>
             <MenuList>
               <MenuItem width="100%">
-                <UserProfileModal user={authCtx.user}>
-                  My Profile
-                </UserProfileModal>
+                <MyAccountModal user={authCtx.user}>My Account</MyAccountModal>
+              </MenuItem>
+              <MenuItem width="100%">
+                <ChatWallpaperModal>Wallpaper</ChatWallpaperModal>
               </MenuItem>
               <MenuItem width="100%">
                 <LogoutConfimationModal>Logout</LogoutConfimationModal>

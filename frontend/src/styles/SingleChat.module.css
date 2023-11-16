@@ -1,0 +1,8 @@
+.file-label {
+  padding: 6px;
+  padding-inline: 7px;
+  margin-right: 6px;
+  border-radius: 5px;
+  background-color: rgb(4, 175, 175);
+  cursor: pointer;
+}

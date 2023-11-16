@@ -1,3 +1,4 @@
+import { v2 as cloudinary } from "cloudinary";
 import User from "../models/userModel.js";
 import HttpError from "../models/http-error.js";
 import {
@@ -42,7 +43,9 @@ const login = async (req, res, next) => {
         userId: existingUser._id,
         name: existingUser.name,
         email: existingUser.email,
+        about: existingUser.about,
         profileImage: existingUser.profileImage,
+        chatWallpaper: existingUser.chatWallpaper,
         token,
       },
     });
@@ -68,7 +71,7 @@ const register = async (req, res, next) => {
       return next(new HttpError("Password is required.", 400));
     }
 
-    if (!profileImage || profileImage.trim().length === 0) {
+    if (!profileImage || profileImage?.image_url.trim().length === 0) {
       return next(new HttpError("Profile picture is required.", 400));
     }
 
@@ -100,7 +103,9 @@ const register = async (req, res, next) => {
         userId: createdUser._id,
         name: createdUser.name,
         email: createdUser.email,
+        about: createdUser.about,
         profileImage: createdUser.profileImage,
+        chatWallpaper: createdUser.chatWallpaper,
         token,
       },
     });
@@ -131,7 +136,9 @@ const searchUsers = async (req, res, next) => {
       .limit(10);
 
     if (!users) {
-      return next(new HttpError("Something went wrong."));
+      return next(
+        new HttpError("Something went wrong, could not find any users.", 500)
+      );
     }
 
     res.status(200).json({
@@ -141,25 +148,138 @@ const searchUsers = async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
-    return next(new HttpError("Something went wrong."));
+    return next(new HttpError("Server error, failed to find users.", 500));
   }
 };
 
-// const _ = async (req, res, next) => {
-//   try {
-//     const existingUser = await User.find({ email: email });
-//     if (!existingUser) {
-//       return next(new HttpError("Something went wrong, failed to login."));
-//     }
+const updateUser = async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+    if (req.user._id.toString() !== userId.toString()) {
+      return next(
+        new HttpError("Only owner of the account can change it.", 400)
+      );
+    }
 
-//     res.status(200).json({
-//       success: true,
-//       message: "",
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     return next(new HttpError("Something went wrong, failed to login."));
-//   }
-// };
+    const existingUser = await User.findById(userId);
+    if (!existingUser) {
+      return next(new HttpError("Could not find user.", 400));
+    }
 
-export { login, register, searchUsers };
+    const { updatedUser } = req.body;
+
+    if (
+      existingUser.profileImage?.image_url !==
+      updatedUser?.profileImage?.image_url
+    ) {
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+
+      await cloudinary.uploader
+        .destroy(existingUser.profileImage?.public_id, (err, res) => {
+          // console.log(err, res);
+        })
+        .then((res) => {
+          // console.log(res)
+        })
+        .catch((err) => {
+          console.log(err);
+          throw new Error("Something went wrong, failed to update user.");
+        });
+    }
+
+    for (let key in updatedUser) {
+      existingUser[key] = updatedUser[key];
+    }
+
+    await existingUser.save();
+
+    const token = generateToken(existingUser._id, existingUser.email);
+
+    res.status(200).json({
+      success: true,
+      message: "User updated!",
+      user: {
+        userId: existingUser._id,
+        name: existingUser.name,
+        email: existingUser.email,
+        about: existingUser.about,
+        profileImage: existingUser.profileImage,
+        chatWallpaper: existingUser.chatWallpaper,
+        token,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return next(
+      new HttpError("Something went wrong, failed to update user.", 500)
+    );
+  }
+};
+
+const addChatWallpaper = async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+    const { wallpaper, remove } = req.body;
+    if (!(req.user._id.toString() === userId.toString())) {
+      return next(
+        new HttpError("Only owner of the account can change it.", 400)
+      );
+    }
+
+    const existingUser = await User.findById(req.user._id);
+    if (!existingUser) {
+      return next(new HttpError("Something went wrong, failed to find user."));
+    }
+
+    if (
+      existingUser.chatWallpaper?.image_url.trim().length > 0 &&
+      existingUser.chatWallpaper?.public_id.trim().length > 0
+    ) {
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+
+      await cloudinary.uploader
+        .destroy(existingUser.chatWallpaper?.public_id, (err, res) => {
+          // console.log(err, res);
+        })
+        .then((res) => {
+          // console.log(res)
+        })
+        .catch((err) => {
+          console.log(err);
+          // throw new Error("Something went wrong, failed to update wallpaper.");
+        });
+    }
+
+    if (remove) {
+      existingUser.chatWallpaper = {
+        image_url: "",
+        public_id: "",
+      };
+    } else {
+      existingUser.chatWallpaper = wallpaper;
+    }
+
+    await existingUser.save();
+
+    res.status(200).json({
+      success: true,
+      message: remove ? "Wallpaper removed!" : "Wallpaper updated!",
+      chatWallpaper: existingUser.chatWallpaper,
+    });
+  } catch (error) {
+    console.log(error);
+    return next(
+      new HttpError("Something went wrong, failed to add chat wallpaper.")
+    );
+  }
+};
+
+export { login, register, updateUser, searchUsers, addChatWallpaper };

@@ -408,7 +408,7 @@ const UpdateGroupModal = ({ setFetchAgain, onUpdateGroup }) => {
                   <Avatar
                     size={{ base: "md", md: "md" }}
                     name={user?.name}
-                    src={user?.profileImage}
+                    src={user?.profileImage?.image_url}
                   />
                   <Box ml={2}>
                     <Text

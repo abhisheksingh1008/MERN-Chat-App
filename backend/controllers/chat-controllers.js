@@ -1,3 +1,4 @@
+import { v2 as cloudinary } from "cloudinary";
 import Chat from "../models/chatModel.js";
 import User from "../models/userModel.js";
 import HttpError from "../models/http-error.js";
@@ -69,7 +70,7 @@ const singleChat = async (req, res, next) => {
 
       newSingleChat = await User.populate(newSingleChat, {
         path: "users",
-        select: "_id name email profileImage",
+        select: "_id name email about profileImage",
       });
 
       res.status(201).json({
@@ -321,9 +322,7 @@ const leaveGroup = async (req, res, next) => {
 const deleteGroup = async (req, res, next) => {
   try {
     const chatId = req.params.chatId;
-
     let group = await Chat.findOne({ isGroupChat: true, _id: chatId });
-
     if (!group) {
       return next(new HttpError("Group not found.", 400));
     }
@@ -332,8 +331,28 @@ const deleteGroup = async (req, res, next) => {
       return next(new HttpError("Only group admin can delete the group.", 400));
     }
 
+    const messages = await Message.find({ chat: group._id });
+    if (messages) {
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+      for (let i = 0; i < messages.length; i++) {
+        if (messages[i].isFile) {
+          await cloudinary.uploader
+            .destroy(messages[i].fileInfo?.public_id, (err, res) => {})
+            .then((res) => {})
+            .catch((err) => {
+              console.log(err);
+              throw new Error("Something went wrong, failed to delete chat.");
+            });
+        }
+        await Message.deleteOne({ _id: messages[i]._id });
+      }
+    }
+
     await Chat.deleteOne({ _id: group._id });
-    await Message.deleteMany({ chat: group._id });
 
     res.status(200).json({
       success: true,

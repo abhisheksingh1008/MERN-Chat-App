@@ -17,12 +17,20 @@ const messageSchema = mongoose.Schema(
       ref: "Chat",
       required: true,
     },
-    readBy: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+    isFile: {
+      type: Boolean,
+      default: false,
+    },
+    fileInfo: {
+      file_url: {
+        type: String,
+        required: false,
       },
-    ],
+      public_id: {
+        type: String,
+        required: false,
+      },
+    },
   },
   { timestamps: true }
 );

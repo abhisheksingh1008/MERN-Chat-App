@@ -251,7 +251,7 @@ const GroupChatModal = ({ children }) => {
                   <Avatar
                     size={{ base: "md", md: "md" }}
                     name={user?.name}
-                    src={user?.profileImage}
+                    src={user?.profileImage?.image_url}
                   />
                   <Box ml={2}>
                     <Text
@@ -276,9 +276,10 @@ const GroupChatModal = ({ children }) => {
               mr={3}
               colorScheme="blue"
               isLoading={loading}
+              loadingText="Creating..."
               onClick={createChatHandler}
             >
-              Create Chat
+              Create
             </Button>
             <Button
               colorScheme="blue"

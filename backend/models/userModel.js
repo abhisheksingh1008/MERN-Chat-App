@@ -15,8 +15,31 @@ const userSchema = mongoose.Schema(
       required: true,
     },
     profileImage: {
+      image_url: {
+        type: String,
+        trim: true,
+        required: true,
+      },
+      public_id: {
+        type: String,
+        required: true,
+      },
+    },
+    about: {
       type: String,
-      required: true,
+      required: false,
+      default: "",
+    },
+    chatWallpaper: {
+      image_url: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+      public_id: {
+        type: String,
+        default: "",
+      },
     },
     isAdmin: {
       type: Boolean,

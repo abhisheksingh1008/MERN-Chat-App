@@ -16,8 +16,6 @@ const LogoutConfimationModal = ({ children }) => {
   const authCtx = useAuth();
 
   const logoutHandler = () => {
-    authCtx.setSelectedChat(null);
-    authCtx.setAllChats([]);
     authCtx.logout();
   };
 

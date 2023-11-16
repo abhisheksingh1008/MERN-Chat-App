@@ -12,8 +12,8 @@ const MessageFeed = ({ messages }) => {
             key={message._id}
             message={message}
             isSelfMessage={authCtx.user?.userId === message?.sender?._id}
-            isLastMessage={
-              messages[index + 1]?.sender?._id !== message?.sender?._id
+            isFirstMessage={
+              index === 0 ? true : messages[index - 1]?.sender?._id !== message?.sender?._id
             }
           />
         ))}

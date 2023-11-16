@@ -1,4 +1,4 @@
-import { useSelector, UseSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Box } from "@chakra-ui/react";
 import SingleChat from "./SingleChat";
 
@@ -7,7 +7,8 @@ const ChatBox = ({ setFetchAgain }) => {
 
   return (
     <Box
-      p={2}
+      px={{ base: 1, md: 2 }}
+      pt={{ base: 1, md: 2 }}
       bg="white"
       h={"100%"}
       flexDir="column"

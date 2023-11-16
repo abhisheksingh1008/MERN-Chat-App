@@ -51,14 +51,23 @@ const UserProfileModal = ({ user, children }) => {
             <Image
               borderRadius="full"
               boxSize="150px"
-              src={user?.profileImage}
+              src={user?.profileImage?.image_url}
               alt={user?.name}
               mb="10px"
             />
             <Text
-              fontSize={{ base: "22px", md: "25px" }}
+              fontSize={{ base: "18px", md: "20px" }}
               fontFamily="Work sans"
               fontWeight="semibold"
+              textAlign={"center"}
+            >
+              {user?.about}
+            </Text>
+            <Text
+              fontSize={{ base: "18px", md: "20px" }}
+              fontFamily="Work sans"
+              fontWeight="semibold"
+              textAlign={"center"}
             >
               Email : {user?.email}
             </Text>

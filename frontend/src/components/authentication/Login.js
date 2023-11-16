@@ -135,7 +135,7 @@ const Login = () => {
             setFormData((prev) => ({
               ...prev,
               email: "guestuser@example.com",
-              password: "12345678",
+              password: "87654321",
             }));
           }}
           isLoading={formData.isSubmitting}

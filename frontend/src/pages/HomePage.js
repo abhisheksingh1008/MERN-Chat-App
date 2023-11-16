@@ -24,12 +24,12 @@ const HomePage = () => {
         <>
           <TopSection></TopSection>
           <Box
-            height={{ base: "90.5dvh", md: "88vh" }}
+            height={{ base: "92dvh", md: "88.5vh" }}
             gap="5px"
             display="flex"
             alignItems="flex-start"
             justifyContent="space-around"
-            p={{ base: "4px", md: "10px" }}
+            p={{ base: "3px", md: "8px" }}
           >
             <MyChats fetchAgain={fetchAgain}></MyChats>
             <ChatBox setFetchAgain={setFetchAgain}></ChatBox>

@@ -3,28 +3,32 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { io } from "socket.io-client";
 import {
-  Avatar,
   Box,
   Button,
   FormControl,
+  FormLabel,
+  Image,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Spinner,
   Text,
-  Tooltip,
+  useDisclosure,
   useToast,
 } from "@chakra-ui/react";
+import { IoMdSend } from "react-icons/io";
+import { MdOutlineAttachFile } from "react-icons/md";
 import { useAuth } from "../store/AuthContext";
 import { chatActions } from "../store/ChatStore/chat-slice";
-import { IoMdArrowBack, IoMdSend } from "react-icons/io";
-import UserProfileModal from "./modals/UserProfileModal";
-import {
-  getSingleChatName,
-  getSingleChatProfileImage,
-  loggedUserIsGroupAdmin,
-} from "../utils/ChatLogics";
-import UpdateGroupModal from "./modals/UpdateGroupModal";
-import ViewGroupModal from "./modals/ViewGroupModal";
 import MessageFeed from "./miscellaneous/MessageFeed";
+import classes from "../styles/SingleChat.module.css";
+import { handleFileUpload } from "../utils/cloudinary";
+import SingleChatTopSection from "./SingleChatTopSection";
 import TypingIndicator from "./miscellaneous/TypingIndicator";
 
 let socket, selectedChatCompare, timeout;
@@ -34,6 +38,7 @@ const SingleChat = ({ setFetchAgain }) => {
   const authCtx = useAuth();
   const toast = useToast();
   const dispatch = useDispatch();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const selectedChat = useSelector((state) => state.chat.selectedChat);
   const newChat = useSelector((state) => state.chat.newChat);
@@ -49,6 +54,7 @@ const SingleChat = ({ setFetchAgain }) => {
   const [someoneElseIsTyping, setSomeoneElseIsTyping] = useState(false);
   const [userWhoIsTyping, setUserWhoIsTyping] = useState(null);
   const [iAmTyping, setIAmTyping] = useState(false);
+  const [file, setFile] = useState(null);
   const messagesEndRef = useRef(null);
 
   const fetchAllMessages = async () => {
@@ -69,7 +75,6 @@ const SingleChat = ({ setFetchAgain }) => {
         } else if (page > 1) {
           setAllMessages((prev) => [...res.data.messages, ...prev]);
         }
-
         socket.emit("join chat", selectedChat._id);
       })
       .catch((err) => {
@@ -101,12 +106,49 @@ const SingleChat = ({ setFetchAgain }) => {
     }
 
     setSendingMessage(true);
-
+    let file_url, public_id;
+    if (file) {
+      try {
+        const res = await handleFileUpload(file, "image");
+        if (!res.image_url || !res.public_id) {
+          toast({
+            title: "Failed to upload file. Please try again later.",
+            status: "error",
+            duration: 6000,
+            isClosable: true,
+            position: "top",
+          });
+          setSendingMessage(false);
+          return;
+        }
+        file_url = res.image_url;
+        public_id = res.public_id;
+      } catch (error) {
+        toast({
+          title: error.message,
+          status: "error",
+          duration: 6000,
+          isClosable: true,
+          position: "top",
+        });
+        setSendingMessage(false);
+        return;
+      }
+    }
     await axios
       .post(
         `/api/messages/create/${selectedChat?._id}`,
         {
-          messageContent: enteredMessage.trim(),
+          message: {
+            messageContent: enteredMessage.trim(),
+            isFile: file ? true : false,
+            ...(file && {
+              fileInfo: {
+                file_url,
+                public_id,
+              },
+            }),
+          },
         },
         {
           headers: {
@@ -115,7 +157,6 @@ const SingleChat = ({ setFetchAgain }) => {
         }
       )
       .then((res) => {
-        // console.log(res.data);
         setEnteredMessage("");
         setAllMessages((prev) => [...prev, res.data?.createdMessage]);
         dispatch(
@@ -123,7 +164,6 @@ const SingleChat = ({ setFetchAgain }) => {
             chat: { ...res.data.createdMessage.chat },
           })
         );
-
         socket.emit("stop typing", selectedChat._id);
         socket.emit("send new message", res.data.createdMessage);
       })
@@ -140,63 +180,8 @@ const SingleChat = ({ setFetchAgain }) => {
       });
 
     setSendingMessage(false);
-  };
-
-  const sendMessage = async (e) => {
-    if (e.key === "Enter") {
-      if (enteredMessage.trim().length === 0) {
-        toast({
-          title: "Please enter a message.",
-          status: "error",
-          duration: 6000,
-          isClosable: true,
-          position: "top",
-        });
-        return;
-      }
-
-      setSendingMessage(true);
-
-      await axios
-        .post(
-          `/api/messages/create/${selectedChat?._id}`,
-          {
-            messageContent: enteredMessage.trim(),
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${authCtx.user?.token}`,
-            },
-          }
-        )
-        .then((res) => {
-          // console.log(res);
-          setEnteredMessage("");
-          setAllMessages((prev) => [...prev, res.data?.createdMessage]);
-          dispatch(
-            chatActions.onNewMessage({
-              chat: { ...res.data.createdMessage.chat },
-            })
-          );
-
-          socket.emit("stop typing", selectedChat._id);
-          socket.emit("send new message", res.data.createdMessage);
-        })
-        .catch((err) => {
-          console.log(err);
-          toast({
-            title: "An error occured!",
-            description:
-              err.response?.data?.message || "Failed to send message.",
-            status: "error",
-            duration: 6000,
-            isClosable: true,
-            position: "top",
-          });
-        });
-
-      setSendingMessage(false);
-    }
+    setFile(null);
+    onClose();
   };
 
   const typingHandler = (e) => {
@@ -211,11 +196,9 @@ const SingleChat = ({ setFetchAgain }) => {
     let lastTypingTime = new Date().getTime();
 
     clearTimeout(timeout);
-
     timeout = setTimeout(() => {
       let currentTime = new Date().getTime();
       let timeDifference = currentTime - lastTypingTime;
-
       if (iAmTyping && timeDifference >= timerLength) {
         socket.emit("stop typing", selectedChat._id);
         setIAmTyping(false);
@@ -294,6 +277,21 @@ const SingleChat = ({ setFetchAgain }) => {
   }, [selectedChat, page]);
 
   useEffect(() => {
+    let t;
+    const callback = () => {
+      if (page === 1) messagesEndRef.current?.scrollIntoView();
+    };
+    t = setTimeout(callback, 400);
+    return () => clearTimeout(t);
+  }, [allMessages, page]);
+
+  useEffect(() => {
+    if (page === 1) {
+      messagesEndRef.current?.scrollIntoView();
+    }
+  }, [page, someoneElseIsTyping]);
+
+  useEffect(() => {
     setPage(1);
     setTotalPages(0);
     setAllMessages([]);
@@ -313,135 +311,91 @@ const SingleChat = ({ setFetchAgain }) => {
     }
   }, [newChat]);
 
-  useEffect(() => {
-    if (page === 1) {
-      messagesEndRef.current?.scrollIntoView();
-    }
-  }, [allMessages, page, someoneElseIsTyping]);
-
   return (
     <>
       {selectedChat ? (
         <>
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Box display="flex" alignItems="center">
-              <Tooltip label="Back" placement="bottom" hasArrow>
-                <Button
-                  px={1}
-                  mr={1}
-                  variant="ghost"
-                  alignItems="center"
-                  borderRadius="lg"
-                  display={{ base: "flex", md: "none" }}
-                  onClick={() => {
-                    dispatch(chatActions.setSelectedChat({ chat: null }));
-                  }}
-                >
-                  <IoMdArrowBack
-                    style={{ fontSize: "1.75rem", marginRight: 0 }}
-                  />
-                  <Avatar
-                    ml={0}
-                    size={{ base: "sm", md: "md" }}
-                    name={
-                      selectedChat?.isGroupChat
-                        ? selectedChat?.chatName
-                        : getSingleChatName(authCtx.user, selectedChat.users)
-                    }
-                    src={
-                      selectedChat?.isGroupChat
-                        ? ""
-                        : getSingleChatProfileImage(
-                            authCtx.user,
-                            selectedChat.users
-                          )
-                    }
-                  />
-                </Button>
-              </Tooltip>
-              <Text fontFamily="Work sans" fontSize="xl" fontWeight="bold">
-                {selectedChat?.isGroupChat
-                  ? selectedChat?.chatName
-                  : getSingleChatName(authCtx.user, selectedChat.users)}
-              </Text>
-            </Box>
-            {selectedChat?.isGroupChat ? (
-              loggedUserIsGroupAdmin(authCtx.user, selectedChat.groupAdmin) ? (
-                <UpdateGroupModal
-                  setFetchAgain={setFetchAgain}
-                  onUpdateGroup={updateGroupChatHandler}
-                />
-              ) : (
-                <ViewGroupModal
-                  chat={selectedChat}
-                  setFetchAgain={setFetchAgain}
-                  onUpdateGroup={updateGroupChatHandler}
-                />
-              )
-            ) : (
-              <UserProfileModal
-                user={
-                  selectedChat.users[0]._id === authCtx.user.userId
-                    ? selectedChat.users[1]
-                    : selectedChat.users[0]
-                }
-              ></UserProfileModal>
-            )}
-          </Box>
+          <SingleChatTopSection
+            setFetchAgain={setFetchAgain}
+            updateGroupChatHandler={updateGroupChatHandler}
+          />
           <Box
             w={"100%"}
-            h={"90%"}
-            px={2}
-            pb={2}
+            h={{ base: "92%", md: "90%", lg: "90%" }}
             mt={2}
+            pb={2}
             bg="#E8E8E8"
             borderRadius="lg"
             display="flex"
             flexDir="column"
             justifyContent={loadingMessages ? "center" : "flex-end"}
+            overflow="hidden"
           >
             {loadingMessages ? (
               <Spinner size={"xl"} alignSelf="center" />
             ) : (
               <>
                 <Box
-                  w="100%"
-                  h="fit-content"
-                  maxHeight="94%"
                   mb={2}
-                  overflow="scroll"
+                  w="100%"
+                  height="98%"
+                  display={"flex"}
+                  flexDirection={"column"}
+                  justifyContent={"flex-end"}
+                  bgImage={`url(${authCtx.user.chatWallpaper.image_url})`}
+                  bgSize="cover"
+                  bgPosition="center"
+                  bgRepeat="no-repeat"
                 >
-                  <Box textAlign="center">
-                    {loadingMoreMessages ? (
-                      <Spinner size="sm" alignSelf="center" />
-                    ) : (
-                      totalPages > page && (
-                        <Text
-                          cursor="pointer"
-                          textDecoration="underline"
-                          onClick={() => {
-                            setPage((page) => page + 1);
-                          }}
-                        >
-                          Load more...
-                        </Text>
-                      )
+                  <Box overflow={"scroll"} pt={10}>
+                    <Box textAlign="center">
+                      {loadingMoreMessages ? (
+                        <Spinner size="sm" alignSelf="center" />
+                      ) : (
+                        totalPages > page && (
+                          <Text
+                            cursor="pointer"
+                            textDecoration="underline"
+                            onClick={() => {
+                              setPage((page) => page + 1);
+                            }}
+                          >
+                            Load more...
+                          </Text>
+                        )
+                      )}
+                    </Box>
+                    <MessageFeed messages={allMessages} />
+                    {someoneElseIsTyping && (
+                      <TypingIndicator
+                        userWhoIsTyping={userWhoIsTyping}
+                      ></TypingIndicator>
                     )}
+                    <div ref={messagesEndRef}></div>
                   </Box>
-                  <MessageFeed messages={allMessages} />
-                  {someoneElseIsTyping && (
-                    <TypingIndicator
-                      userWhoIsTyping={userWhoIsTyping}
-                    ></TypingIndicator>
-                  )}
-                  <div ref={messagesEndRef}></div>
                 </Box>
-                <FormControl w="100%" h="8%" onKeyDown={sendMessage}>
-                  <Box display="flex">
+                <FormControl
+                  px={1.5}
+                  w="100%"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") sendMessageHandler();
+                  }}
+                >
+                  <Box display="flex" alignItems={"center"}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="file-input"
+                      onChange={(e) => setFile(e.target.files[0])}
+                      hidden
+                    />
+                    <label
+                      htmlFor="file-input"
+                      className={classes["file-label"]}
+                      onClick={onOpen}
+                    >
+                      <MdOutlineAttachFile size={"1.5rem"} color="white" />
+                    </label>
                     <Input
                       p={2}
                       bg="white"
@@ -460,6 +414,73 @@ const SingleChat = ({ setFetchAgain }) => {
                       <IoMdSend />
                     </Button>
                   </Box>
+                  <Modal isOpen={isOpen} onClose={onClose}>
+                    <ModalOverlay />
+                    <ModalContent>
+                      <ModalCloseButton />
+                      <ModalHeader>Selected File :</ModalHeader>
+                      <ModalBody
+                        display="flex"
+                        flexDir="column"
+                        justifyContent="space-between"
+                      >
+                        {file && (
+                          <>
+                            <Image
+                              borderRadius="lg"
+                              src={`${URL.createObjectURL(file)}`}
+                              alt={"selected-image"}
+                            />
+                            <FormControl mt={2}>
+                              <FormLabel>Message</FormLabel>
+                              <Input
+                                p={2}
+                                value={enteredMessage}
+                                onChange={typingHandler}
+                                placeholder="Enter a message..."
+                              />
+                            </FormControl>
+                          </>
+                        )}
+                      </ModalBody>
+                      <ModalFooter>
+                        {file ? (
+                          <>
+                            <Button
+                              variant="solid"
+                              colorScheme="blue"
+                              onClick={sendMessageHandler}
+                              isLoading={sendingMessage}
+                              loadingText="Sending..."
+                            >
+                              Send
+                            </Button>
+                            <Button
+                              ml={2}
+                              variant="solid"
+                              colorScheme="blue"
+                              onClick={() => {
+                                setFile(null);
+                                setEnteredMessage("");
+                                onClose();
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            ml={2}
+                            variant="ghost"
+                            colorScheme="blue"
+                            onClick={onClose}
+                          >
+                            Close
+                          </Button>
+                        )}
+                      </ModalFooter>
+                    </ModalContent>
+                  </Modal>
                 </FormControl>
               </>
             )}

@@ -1,20 +1,16 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { chatActions } from "./ChatStore/chat-slice";
 
 export const AuthContext = createContext({
   user: {},
-  allChats: [],
-  selectedChat: {},
-  notifications: [],
-  setAllChats: () => {},
-  setSelectedChat: () => {},
-  setNotifications: () => {},
   login: (user) => {},
   signup: (user) => {},
   logout: () => {},
+  editChatWallpaper: (wallpaper) => {},
 });
 
 let userData = null;
-
 if (typeof window !== "undefined") {
   userData = JSON.parse(localStorage.getItem("userData"));
 
@@ -31,12 +27,11 @@ if (typeof window !== "undefined") {
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(userData);
-  const [allChats, setAllChats] = useState([]);
-  const [selectedChat, setSelectedChat] = useState(null);
-  const [notifications, setNotifications] = useState([]);
+  const dispatch = useDispatch();
 
   const loginHandler = (user) => {
-    const { userId, name, email, token, profileImage } = user;
+    const { userId, name, email, about, token, profileImage, chatWallpaper } =
+      user;
 
     if (!userId || !email || !token || !profileImage) {
       return;
@@ -51,18 +46,19 @@ const AuthProvider = ({ children }) => {
       userId,
       name,
       email,
-      profileImage,
+      about,
       token,
+      profileImage,
+      chatWallpaper,
       tokenExpirationDate: tokenExpirationDate.toISOString(),
     };
-
-    localStorage.setItem("userData", JSON.stringify(userData));
 
     setUser({ ...userData });
   };
 
   const signupHandler = (user) => {
-    const { userId, name, email, token, profileImage } = user;
+    const { userId, name, email, about, token, profileImage, chatWallpaper } =
+      user;
 
     if (!userId || !email || !token || !profileImage) {
       return;
@@ -77,34 +73,40 @@ const AuthProvider = ({ children }) => {
       userId,
       name,
       email,
+      about,
       token,
       profileImage,
+      chatWallpaper,
       tokenExpirationDate: tokenExpirationDate.toISOString(),
     };
-
-    localStorage.setItem("userData", JSON.stringify(userData));
 
     setUser({ ...userData });
   };
 
   const logoutHandler = () => {
     localStorage.removeItem("userData");
+    dispatch(chatActions.setSelectedChat({ chat: null }));
     setUser(null);
   };
+
+  const editChatWallpaperHandler = (wallpaper) => {
+    setUser({ ...user, chatWallpaper: wallpaper });
+  };
+
+  useEffect(() => {
+    if (user !== null) {
+      localStorage.setItem("userData", JSON.stringify(user));
+    }
+  }, [user]);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        allChats,
-        selectedChat,
-        notifications,
-        setAllChats,
-        setSelectedChat,
-        setNotifications,
         login: loginHandler,
         signup: signupHandler,
         logout: logoutHandler,
+        editChatWallpaper: editChatWallpaperHandler,
       }}
     >
       {children}
