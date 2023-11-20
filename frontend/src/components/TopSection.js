@@ -107,7 +107,7 @@ const TopSection = () => {
   return (
     <>
       <Box
-        p={{ base: "8px 4px", md: "8px" }}
+        p={{ base: "5px 4px", md: "7px 8px" }}
         w="100%"
         bg="white"
         display="flex"

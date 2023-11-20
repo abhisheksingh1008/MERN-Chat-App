@@ -24,7 +24,7 @@ const HomePage = () => {
         <>
           <TopSection></TopSection>
           <Box
-            height={{ base: "92dvh", md: "88.5vh" }}
+            height={{ base: "92dvh", md: "88.5dvh" }}
             gap="5px"
             display="flex"
             alignItems="flex-start"
