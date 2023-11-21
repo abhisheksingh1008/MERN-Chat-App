@@ -37,7 +37,7 @@ const LoginPage = () => {
         textAlign={"center"}
       >
         <Text fontSize="4xl" fontFamily="Work sans" fontWeight="semibold">
-          Chat App
+          Wynk Chat
         </Text>
       </Box>
       <Box bg="white" w="100%" p={4} borderRadius="lg" borderWidth="1px">

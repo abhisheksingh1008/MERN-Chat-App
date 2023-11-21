@@ -321,7 +321,7 @@ const SingleChat = ({ setFetchAgain }) => {
           />
           <Box
             w={"100%"}
-            h={{ base: "92%", md: "90%", lg: "90%" }}
+            h={"92.5%"}
             mt={2}
             pb={2}
             bg="#E8E8E8"
@@ -338,16 +338,16 @@ const SingleChat = ({ setFetchAgain }) => {
                 <Box
                   mb={2}
                   w="100%"
-                  height="98%"
+                  height="100%"
                   display={"flex"}
                   flexDirection={"column"}
                   justifyContent={"flex-end"}
-                  bgImage={`url(${authCtx.user.chatWallpaper.image_url})`}
+                  bgImage={`url(${authCtx.user?.chatWallpaper?.image_url})`}
                   bgSize="cover"
                   bgPosition="center"
                   bgRepeat="no-repeat"
                 >
-                  <Box overflow={"scroll"} pt={10}>
+                  <Box overflow={"scroll"} pt={12}>
                     <Box textAlign="center">
                       {loadingMoreMessages ? (
                         <Spinner size="sm" alignSelf="center" />
@@ -403,7 +403,6 @@ const SingleChat = ({ setFetchAgain }) => {
                       value={enteredMessage}
                       onChange={typingHandler}
                       placeholder="Enter a message..."
-                      autoFocus
                     />
                     <Button
                       ml={2}

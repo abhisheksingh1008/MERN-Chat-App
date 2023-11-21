@@ -107,33 +107,27 @@ const TopSection = () => {
   return (
     <>
       <Box
-        p={{ base: "5px 4px", md: "7px 8px" }}
+        // p={"4px 0"}
         w="100%"
         bg="white"
         display="flex"
         alignItems="center"
         justifyContent="space-between"
-        borderWidth={{ base: "3px", md: "5px" }}
+        // borderWidth={{ base: "3px", md: "5px" }}
       >
         <Tooltip label="Search Users to chat" hasArrow placement="bottom-end">
-          <Button
-            p={{ base: "2px", md: "0px 6px" }}
-            colorScheme="linkedin"
-            onClick={onOpen}
-          >
+          <Button p={"0px 8px"} colorScheme="linkedin" onClick={onOpen}>
             <BiSearch style={{ fontSize: "1.3rem" }} />
-            <Text display={{ base: "none", md: "block" }} ml="4px">
-              Search Users
-            </Text>
+            <Text ml="2px">Search Users</Text>
           </Button>
         </Tooltip>
-        <Text
-          fontSize={{ base: "xl", md: "3xl" }}
+        {/* <Text
+          fontSize={{ base: "xl", md: "2xl" }}
           fontFamily="Work sans"
           fontWeight="extrabold"
         >
-          Chat App
-        </Text>
+          Wink Chat
+        </Text> */}
         <Box display="flex" alignItems="center">
           <Menu>
             <MenuButton

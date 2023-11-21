@@ -101,7 +101,7 @@ const ViewGroupModal = ({ chat, setFetchAgain, onUpdateGroup }) => {
                     src={user?.profileImage?.image_url}
                   />
                   <Box ml={2}>
-                    <Box display="flex" gap={2}>
+                    <Box display="flex" gap={2} alignItems="center">
                       <Text
                         fontSize={{ base: "1.1rem", md: "1.2rem" }}
                         fontFamily="Work sans"
@@ -112,15 +112,16 @@ const ViewGroupModal = ({ chat, setFetchAgain, onUpdateGroup }) => {
                       {chat.groupAdmin?._id === user._id && (
                         <Box
                           px={2}
-                          py={1}
+                          py={0.5}
                           h="fit-content"
                           borderRadius={"lg"}
-                          backgroundColor="#ccc"
+                          backgroundColor="teal"
                         >
                           <Text
-                            fontSize="0.8rem"
+                            fontSize="0.75rem"
                             fontWeight="extrabold"
                             fontFamily="Work sans"
+                            color={"white"}
                           >
                             Admin
                           </Text>

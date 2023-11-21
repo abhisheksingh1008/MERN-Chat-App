@@ -11,6 +11,7 @@ import {
   getSingleChatName,
   getSingleChatProfileImage,
 } from "../utils/ChatLogics";
+import TopSection from "./TopSection";
 
 const MyChats = ({ fetchAgain }) => {
   const authCtx = useAuth();
@@ -62,15 +63,22 @@ const MyChats = ({ fetchAgain }) => {
       flexDir="column"
       alignItems="center"
       bg="white"
-      p={{ base: 1, md: 2 }}
-      w={{ base: "100%", md: "36%" }}
       h={"100%"}
+      p={1.5}
+      w={{ base: "100%", md: "36%" }}
       borderRadius="lg"
       borderWidth="1px"
     >
+      <TopSection></TopSection>
+      <hr
+        style={{
+          marginTop: "8px",
+          borderRadius: "5px",
+          border: "1px solid #ccc",
+        }}
+      />
       <Box
-        p={1}
-        py={2}
+        py={1.5}
         display="flex"
         alignItems="center"
         justifyContent="space-between"
@@ -87,18 +95,18 @@ const MyChats = ({ fetchAgain }) => {
           <Button
             variant="ghost"
             colorScheme="blue"
-            p="0px 8px"
+            p="0px 7px"
             display="flex"
             alignItems="center"
           >
             <IoMdAdd style={{ fontSize: "1.25rem" }} />
-            <Text ml="2px">New Group Chat</Text>
+            <Text mx="2px">New Group Chat</Text>
           </Button>
         </CreateNewGroupChatModal>
       </Box>
       <Box
         w="100%"
-        h="90%"
+        h={{ base: "85%", md: "83%" }}
         bg="#F8F8F8"
         d="flex"
         flexDir="column"

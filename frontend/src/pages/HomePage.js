@@ -4,7 +4,6 @@ import { Box } from "@chakra-ui/react";
 import { useAuth } from "../store/AuthContext";
 import ChatBox from "../components/ChatBox";
 import MyChats from "../components/MyChats";
-import TopSection from "../components/TopSection";
 
 const HomePage = () => {
   const authCtx = useAuth();
@@ -22,9 +21,8 @@ const HomePage = () => {
     <div style={{ width: "100%" }}>
       {authCtx.user && (
         <>
-          <TopSection></TopSection>
           <Box
-            height={{ base: "92dvh", md: "88.5dvh" }}
+            height={"100dvh"}
             gap="5px"
             display="flex"
             alignItems="flex-start"

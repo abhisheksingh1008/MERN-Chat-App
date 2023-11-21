@@ -5,7 +5,7 @@ const MessageItem = ({ message, isSelfMessage, isFirstMessage }) => {
   return (
     <Box
       m={1}
-      mb={isFirstMessage ? 2 : 1}
+      mt={isFirstMessage ? 2 : 1}
       display="flex"
       justifyContent={isSelfMessage ? "flex-end" : "flex-start"}
     >
